@@ -1,0 +1,6 @@
+[submodule "vendor/CMSIS"]
+	path = vendor/CMSIS
+	url = https://github.com/ARM-software/CMSIS_5.git
+[submodule "vendor/STM32L4_Device"]
+	path = vendor/STM32L4_Device
+	url = https://github.com/STMicroelectronics/cmsis-device-l4.git
