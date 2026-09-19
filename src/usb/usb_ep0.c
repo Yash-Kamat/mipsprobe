@@ -29,11 +29,11 @@ void USB_EP0_HandleSetup(void)
     USB_SetupPacket packet;
     USB_PMA_Read((void *) &packet,0x80, sizeof(USB_SetupPacket));
 
-    UART_send_buffer("bmRequestType = "); UART_send_hex8(packet.bmRequestType);
-    UART_send_buffer("bRequest      = "); UART_send_hex8(packet.bRequest);
-    UART_send_buffer("wValue        = "); UART_send_hex16(packet.wValue);
-    UART_send_buffer("wIndex        = "); UART_send_hex16(packet.wIndex);
-    UART_send_buffer("wLength       = "); UART_send_hex16(packet.wLength);
+    UART_send_buffer("bmRequestType = "); UART_send_hex8(packet.bmRequestType);  UART_send_buffer("\r\n");
+    UART_send_buffer("bRequest      = "); UART_send_hex8(packet.bRequest);       UART_send_buffer("\r\n");
+    UART_send_buffer("wValue        = "); UART_send_hex16(packet.wValue);        UART_send_buffer("\r\n");
+    UART_send_buffer("wIndex        = "); UART_send_hex16(packet.wIndex);        UART_send_buffer("\r\n");
+    UART_send_buffer("wLength       = "); UART_send_hex16(packet.wLength);       UART_send_buffer("\r\n");
 
     USB->EP0R &= ~(USB_EP_CTR_RX);
 }

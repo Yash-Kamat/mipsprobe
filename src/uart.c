@@ -53,11 +53,68 @@ void UART_config(uint32_t baud)
 
     // 7. Write the data to send in the USART_TDR register (this clears the TXE bit). Repeat this
     // for each data to be transmitted in case of single buffer.
-    
+
     // 8. After writing the last data into the USART_TDR register, wait until TC=1. This indicates
     // that the transmission of the last frame is complete. This is required for instance when
     // the USART is disabled or enters the Halt mode to avoid corrupting the last
     // transmission.
+
+    // --- Receiver, interrupt-driven into rx_ring[] (see USART2_IRQHandler below) ---
+    USART2->CR1 |= USART_CR1_RE;
+    while (!(USART2->ISR & USART_ISR_REACK));
+
+    USART2->CR1 |= USART_CR1_RXNEIE;
+    NVIC_EnableIRQ(USART2_IRQn);
+}
+
+// --- RX ring buffer -----------------------------------------------------
+// Power-of-2 size so wraparound is a cheap mask instead of a modulo.
+#define UART_RX_BUF_SIZE 64U
+
+static volatile uint8_t  rx_ring[UART_RX_BUF_SIZE];
+static volatile uint8_t  rx_head = 0; // next slot USART2_IRQHandler writes to
+static volatile uint8_t  rx_tail = 0; // next slot UART_receive_byte() reads from
+
+void USART2_IRQHandler(void)
+{
+    if (USART2->ISR & USART_ISR_ORE)
+    {
+        // A byte arrived before we drained the previous one out of RDR --
+        // clear it and carry on rather than getting stuck re-entering this ISR.
+        USART2->ICR = USART_ICR_ORECF;
+    }
+
+    if (USART2->ISR & USART_ISR_RXNE)
+    {
+        uint8_t byte = (uint8_t) USART2->RDR; // reading RDR also clears RXNE
+        uint8_t next_head = (uint8_t) ((rx_head + 1) % UART_RX_BUF_SIZE);
+        if (next_head != rx_tail) // drop the byte silently if the ring is full
+        {
+            rx_ring[rx_head] = byte;
+            rx_head = next_head;
+        }
+    }
+}
+
+uint8_t UART_rx_available(void)
+{
+    return (uint8_t) ((rx_head - rx_tail + UART_RX_BUF_SIZE) % UART_RX_BUF_SIZE);
+}
+
+int UART_receive_byte(void)
+{
+    if (rx_head == rx_tail) return -1; // empty
+
+    uint8_t byte = rx_ring[rx_tail];
+    rx_tail = (uint8_t) ((rx_tail + 1) % UART_RX_BUF_SIZE);
+    return byte;
+}
+
+uint8_t UART_receive_byte_blocking(void)
+{
+    int byte;
+    while ((byte = UART_receive_byte()) < 0);
+    return (uint8_t) byte;
 }
 
 void UART_send_byte(char data)
@@ -86,7 +143,7 @@ void UART_send_uint32(uint32_t number)
 {
     if(number == 0)
     {
-        UART_send_buffer("0\r\n");
+        UART_send_buffer("0");
         return;
     }
     char buffer[20] = {(uint8_t) 0};
@@ -102,9 +159,7 @@ void UART_send_uint32(uint32_t number)
         buffer[count-1-i] = buffer[i];
         buffer[i] = temp;
     }
-    buffer[count++] = '\r';
-    buffer[count++] = '\n';
-    buffer[count++] = '\0';
+    buffer[count] = '\0';
 
     UART_send_buffer(buffer);
 }
@@ -117,9 +172,7 @@ void UART_send_hex8(uint8_t number)
     buffer[1] = 'x';
     buffer[2] = (((number >> 4) & 0xF) < 10) ? (((number >> 4) & 0xF) + '0') : (((number >> 4) & 0xF) - 10 + 'A');
     buffer[3] = (((number >> 0) & 0xF) < 10) ? (((number >> 0) & 0xF) + '0') : (((number >> 0) & 0xF) - 10 + 'A');
-    buffer[4] = '\r';
-    buffer[5] = '\n';
-    buffer[6] = '\0';
+    buffer[4] = '\0';
 
     UART_send_buffer(buffer);
 }
@@ -133,9 +186,7 @@ void UART_send_hex16(uint16_t number)
     buffer[3] = (((number >> 8) & 0xF) < 10) ? ((number >> 8) & 0xF) + '0' : (((number >> 8) & 0xF) - 10 + 'A');
     buffer[4] = (((number >> 4) & 0xF) < 10) ? ((number >> 4) & 0xF) + '0' : (((number >> 4) & 0xF) - 10 + 'A');
     buffer[5] = (((number >> 0) & 0xF) < 10) ? ((number >> 0) & 0xF) + '0' : (((number >> 0) & 0xF) - 10 + 'A');
-    buffer[6] = '\r';
-    buffer[7] = '\n';
-    buffer[8] = '\0';
+    buffer[6] = '\0';
 
     UART_send_buffer(buffer);
 }
@@ -153,9 +204,7 @@ void UART_send_hex32(uint32_t number)
     buffer[7] = (((number >>  8) & 0xF) < 10) ? (((number >>  8) & 0xF) + '0') : (((number >>  8) & 0xF) - 10 + 'A');
     buffer[8] = (((number >>  4) & 0xF) < 10) ? (((number >>  4) & 0xF) + '0') : (((number >>  4) & 0xF) - 10 + 'A');
     buffer[9] = (((number >>  0) & 0xF) < 10) ? (((number >>  0) & 0xF) + '0') : (((number >>  0) & 0xF) - 10 + 'A');
-    buffer[10] = '\r';
-    buffer[11] = '\n';
-    buffer[12] = '\0';
+    buffer[10] = '\0';
 
     UART_send_buffer(buffer);
 }

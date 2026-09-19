@@ -26,9 +26,9 @@ int main(void)
             last = ticks;
             GPIOA->ODR ^= (1U<<5);
             UART_send_buffer("SystemCoreClock is: ");
-            UART_send_uint32(SystemCoreClock);
+            UART_send_uint32(SystemCoreClock); UART_send_buffer("\r\n");
             UART_send_buffer("Time is: ");
-            UART_send_uint32(last);
+            UART_send_uint32(last);            UART_send_buffer("\r\n");
         }
     }
 }

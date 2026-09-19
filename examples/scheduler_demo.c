@@ -17,7 +17,7 @@ void task1(void)
 
     while(1)
     {
-        UART_send_buffer("[Task 1] counter = ");UART_send_uint32(counter_t1++);
+        UART_send_buffer("[Task 1] counter = ");UART_send_uint32(counter_t1++);UART_send_buffer("\r\n");
 
         for(volatile uint32_t i=0;i<1000000;i++);
 
@@ -30,7 +30,7 @@ void task2(void)
     uint32_t counter_t2 = 0;
     while(1)
     {
-        UART_send_buffer("[Task 2] counter = ");UART_send_uint32(counter_t2++);
+        UART_send_buffer("[Task 2] counter = ");UART_send_uint32(counter_t2++);UART_send_buffer("\r\n");
 
         for(volatile uint32_t i=0;i<1000000;i++);
 

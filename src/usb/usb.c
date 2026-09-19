@@ -76,34 +76,34 @@ void USB_FS_Configure()
 void USB_IRQHandler(void)
 {
     UART_send_buffer("ISTR = ");
-    UART_send_hex16(USB->ISTR);
+    UART_send_hex16(USB->ISTR);              UART_send_buffer("\r\n");
     uint16_t istr = USB->ISTR;      /*we copy the register first because interrupt flags can 
                                       change while we're inside the ISR*/
 
     if (istr & USB_ISTR_RESET)
     {
         UART_send_buffer("EP0R = ");
-        UART_send_hex16(USB->EP0R);
+        UART_send_hex16(USB->EP0R);          UART_send_buffer("\r\n");
 
         USB_EP0_Init();
         
         UART_send_buffer("EP0R = ");
-        UART_send_hex16(USB->EP0R);
+        UART_send_hex16(USB->EP0R);          UART_send_buffer("\r\n");
 
         USB->DADDR = USB_DADDR_EF;
 
         UART_send_buffer("DADDR = ");
-        UART_send_hex16(USB->DADDR);
+        UART_send_hex16(USB->DADDR);         UART_send_buffer("\r\n");
 
         USB_BTableEntry *btable_local = ((USB_BTableEntry *)(USB_PMA));
         UART_send_buffer("TX_ADDR = ");
-        UART_send_hex16(btable_local->TX_ADDR);
+        UART_send_hex16(btable_local->TX_ADDR);  UART_send_buffer("\r\n");
 
         UART_send_buffer("RX_ADDR = ");
-        UART_send_hex16(btable_local->RX_ADDR);
+        UART_send_hex16(btable_local->RX_ADDR);  UART_send_buffer("\r\n");
 
         UART_send_buffer("RX_COUNT = ");
-        UART_send_hex16(btable_local->RX_COUNT);
+        UART_send_hex16(btable_local->RX_COUNT); UART_send_buffer("\r\n");
 
         UART_send_buffer("[USB] RESET\r\n");
         USB->ISTR &= ~USB_ISTR_RESET;
@@ -116,7 +116,7 @@ void USB_IRQHandler(void)
         volatile uint16_t * EndPArr = (uint16_t * ) USB;
 
         UART_send_buffer("[USB] CTR EP: ");
-        UART_send_uint32(ep);
+        UART_send_uint32(ep);                    UART_send_buffer("\r\n");
 
         uint16_t EPR = EndPArr[ep*2];
         if(EPR & USB_EP_CTR_RX) {UART_send_buffer("Received data\r\n");}

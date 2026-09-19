@@ -29,7 +29,7 @@ int main(void)
 
     UART_send_buffer("USB peripheral configured.\r\n");
     UART_send_buffer("Test value(uint32): ");
-    UART_send_hex32(0x00304500);
+    UART_send_hex32(0x00304500); UART_send_buffer("\r\n");
 
     while(1)
     {
