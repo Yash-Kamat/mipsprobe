@@ -1,35 +1,36 @@
-# Assembles full_test.S for the MIPS_proc CPU and regenerates the C header the
-# STM32 firmware embeds:
+# Assembles every program in PROGS for the MIPS_proc CPU and regenerates the
+# C headers the STM32 firmware embeds:
 #
-#   make          assemble -> raw .bin (instr + data) -> ../src/mips_full_test.h
+#   make          assemble -> raw .bin (instr + data) -> ../src/mips_<prog>.h
 #   make clean
 #
 # Needs only clang (built with the MIPS target) and llvm-objcopy -- no MIPS gcc.
 # The custom opcodes come from the macros in isa.inc, so the output is exact.
 
-PROG    = full_test
+PROGS   = full_test tt_test
 CLANG   ?= clang
 OBJCOPY ?= llvm-objcopy-14
 PYTHON  ?= python3
 
 BUILD   = build
-HEADER  = ../src/mips_$(PROG).h
 
-all: $(HEADER)
+all: $(PROGS:%=../src/mips_%.h)
 
-$(BUILD)/$(PROG).o: $(PROG).S isa.inc
+$(BUILD)/%.o: %.S isa.inc
 	@mkdir -p $(BUILD)
 	$(CLANG) --target=mips-linux-gnu -x assembler -c $< -o $@
 
-$(BUILD)/$(PROG)_instr.bin: $(BUILD)/$(PROG).o
+$(BUILD)/%_instr.bin: $(BUILD)/%.o
 	$(OBJCOPY) -O binary -j .text $< $@
 
-$(BUILD)/$(PROG)_data.bin: $(BUILD)/$(PROG).o
+$(BUILD)/%_data.bin: $(BUILD)/%.o
 	$(OBJCOPY) -O binary -j .data $< $@
 
-$(HEADER): $(BUILD)/$(PROG)_instr.bin $(BUILD)/$(PROG)_data.bin
-	$(PYTHON) ../tools/bin2c.py $(BUILD)/$(PROG)_instr.bin $(PROG)_instr >  $@
-	$(PYTHON) ../tools/bin2c.py $(BUILD)/$(PROG)_data.bin  $(PROG)_data  >> $@
+../src/mips_%.h: $(BUILD)/%_instr.bin $(BUILD)/%_data.bin
+	$(PYTHON) ../tools/bin2c.py $(BUILD)/$*_instr.bin $*_instr >  $@
+	$(PYTHON) ../tools/bin2c.py $(BUILD)/$*_data.bin  $*_data  >> $@
+
+.SECONDARY:
 
 clean:
 	rm -rf $(BUILD)

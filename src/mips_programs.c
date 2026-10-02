@@ -7,6 +7,7 @@
  * there after editing a .S file to regenerate its header.
  */
 #include "mips_full_test.h"
+#include "mips_tt_test.h"
 
 const MIPS_Program mips_programs[] = {
     {
@@ -15,6 +16,13 @@ const MIPS_Program mips_programs[] = {
         .instr_len = sizeof(full_test_instr),
         .data = full_test_data,
         .data_len = sizeof(full_test_data),
+    },
+    {
+        .name = "tt_test",
+        .instr = tt_test_instr,
+        .instr_len = sizeof(tt_test_instr),
+        .data = tt_test_data,
+        .data_len = sizeof(tt_test_data),
     },
 };
 
