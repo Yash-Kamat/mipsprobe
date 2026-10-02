@@ -1,0 +1,34 @@
+// mips_proc — physical constraints for the Sipeed Tang Nano 20K (GW2AR-18C).
+//
+// Pins cross-checked against litex-boards (sipeed_tang_nano_20k.py), the Sipeed
+// TangNano-20K-example constraint files, and the Tang Nano 20K schematic v1.22.
+
+// 27 MHz on-board oscillator. The core runs directly off it -- no PLL; see
+// "Clock rate" in ../README.md for why 100 MHz is not on the table here.
+IO_LOC  "clk" 4;
+IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=UP BANK_VCCIO=3.3;
+
+// Reset, button S1. ACTIVE-HIGH: the switch feeds +3V3 through ~330R and an
+// external ~1K holds the pin low when released, so no internal pull is wanted.
+// `rst` is active-high in the RTL, so it wires straight through, no inverter.
+IO_LOC  "rst" 88;
+IO_PORT "rst" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+
+// DONE indicator, on-board LED0. The board's LEDs are ACTIVE-LOW (drive 0 to
+// light), so top_1_2.v drives this port inverted: LED lit == DONE set.
+IO_LOC  "led" 15;
+IO_PORT "led" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8;
+
+// I2C slave (address 0x42) to the STM32 probe, on header J5. Pins 72 (IOT40A)
+// and 71 (IOT40B) are adjacent and sit right beside the J5 3V3/GND pair; no
+// on-board peripheral claims either one.
+//
+// PULL_MODE=UP is the Gowin weak (~50K) pull-up -- a safety net for a floating
+// bus, NOT a substitute for the external 4.7K pull-ups the link needs.
+//
+// Do not add OPEN_DRAIN=ON here: i2c_slave_mmio already does its own tristate
+// (`assign sda = sda_oe ? 1'b0 : 1'bz;`), which maps to a normal IOBUF.
+IO_LOC  "scl" 72;
+IO_PORT "scl" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC  "sda" 71;
+IO_PORT "sda" IO_TYPE=LVCMOS33 PULL_MODE=UP;

@@ -1,0 +1,49 @@
+# fpga.yaml — OpenFPGA Deck project
+name: mips_proc
+board: tang-nano-20k
+top: top
+
+# Every module the design needs, listed explicitly: `sources` is a plain path
+# list with no globbing, and the loader rejects the project if any path is
+# missing. Order does not matter -- yosys reads all files before elaborating.
+sources:
+  # System wrapper
+  - src/top_1_2.v
+  - src/i2c_slave_mmio_1_2.v
+  - src/mmio_decoder_1_2.v
+  - src/sram_1rw1r_1_2.v
+  # Instruction fetch
+  - src/Pc_1_2.v
+  - src/instruction_memory_1_2.v
+  - src/comparator_2_1_2.v
+  - src/PHT_2_1_2.v
+  - src/Xor_result_1_1_2.v
+  - src/BHT_3_1_2.v
+  - src/BTB_3_1_2.v
+  - src/mux_1_1_1_2.v
+  - src/mux_2_1_1_2.v
+  # Decode
+  - src/IF_ID_register_1_2.v
+  - src/reg_file_1_2.v
+  - src/control_unit_2_1_2.v
+  - src/Sign_extender_1_1_2.v
+  # Execute
+  - src/ID_EX_register_2_1_2.v
+  - src/Forwarding_unit_2_1_2.v
+  - src/Forward_rs_2_1_2.v
+  - src/forward_rt_2_1_2.v
+  - src/mux_1_execution_1_1_2.v
+  - src/ALU_2_1_2.v
+  - src/mux_2_execution_2_1_2.v
+  - src/mux_3_execution_1_1_2.v
+  - src/stalling_unit_1_1_2.v
+  - src/Flushing_unit_3_1_2.v
+  - src/branching_unit_3_1_2.v
+  # Memory and write-back
+  - src/EX_MEM_2_1_2.v
+  - src/data_memory_1_2.v
+  - src/M_WB_Register_1_1_2.v
+  - src/Write_back_mux_1_1_2.v
+
+constraints:
+  - constraints/top.cst

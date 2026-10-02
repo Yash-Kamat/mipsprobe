@@ -13,6 +13,9 @@ MIPS_proc/sim/program.vh
 # Reference documents (large, copyrighted by ST — kept locally, not committed)
 *.pdf
 
+# Python bytecode
+__pycache__/
+
 # Editor / OS cruft
 .vscode/
 *.swp
